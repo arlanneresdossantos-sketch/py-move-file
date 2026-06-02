@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -8,22 +9,24 @@ def move_file(command: str) -> None:
         return
 
     operation, src, dest = arguments
-    src_path, dest_path = Path(src), Path(dest)
 
     if operation != "mv":
         return
 
+    src_path = Path(src)
+    dest_path = Path(dest)
+
     if not src_path.is_file():
         return
 
-    if dest.endswith("/") or dest.endswith("\\"):
+    if dest.endswith("/") or dest.endswith("\\") or dest_path.is_dir():
         dest_path = dest_path / src_path.name
 
-    dest_dir = dest_path.parent
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_dir = str(dest_path.parent)
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
 
-    with open(src_path, "r", encoding="utf-8") as file_in, \
-            open(dest_path, "w", encoding="utf-8") as file_out:
+    with open(src_path, "rb") as file_in, open(dest_path, "wb") as file_out:
         file_out.write(file_in.read())
 
-    src_path.unlink()
+    os.remove(str(src_path))
